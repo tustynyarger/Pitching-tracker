@@ -1,23 +1,20 @@
-export interface SavedSession {
+export type SavedSession = {
   id: string;
+  name?: string;
   date: string;
   plateAppearances: any[];
   walks: number;
   strikeouts: number;
   hits: number;
   totalPitches: number;
-}
+};
 
-export interface SavedSession {
+export type PlayerProfile = {
   id: string;
   name: string;
-  date: string;
-  plateAppearances: any[];
-  walks: number;
-  strikeouts: number;
-  hits: number;
-  totalPitches: number;
-}
+  sessions: SavedSession[];
+};
+
 const STORAGE_KEY = "softball_players";
 
 export function getPlayers(): PlayerProfile[] {
@@ -27,6 +24,7 @@ export function getPlayers(): PlayerProfile[] {
 }
 
 export function savePlayers(players: PlayerProfile[]) {
+  if (typeof window === "undefined") return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(players));
 }
 
