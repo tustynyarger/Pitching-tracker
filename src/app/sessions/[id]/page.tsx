@@ -173,4 +173,4 @@ function Metric({
       <div className="text-xl font-semibold mt-2">{value}</div>
     </div>
   );
-}al
+}

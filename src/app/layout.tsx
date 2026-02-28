@@ -1,10 +1,11 @@
 import "./globals.css";
+import type { Metadata } from "next";
 
-export const metadata = {
+export const metadata: Metadata = {
+  metadataBase: new URL("https://YOUR-VERCEL-URL.vercel.app"),
   title: "Softball Performance Tracker",
   description: "Track pitching sessions and performance analytics",
   manifest: "/manifest.json",
-  themeColor: "#b4f000",
   openGraph: {
     title: "Softball Performance Tracker",
     description: "Track pitching sessions and performance analytics",
@@ -16,6 +17,10 @@ export const metadata = {
       },
     ],
   },
+};
+
+export const viewport = {
+  themeColor: "#b4f000",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
