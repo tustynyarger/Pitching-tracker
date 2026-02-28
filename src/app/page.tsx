@@ -103,6 +103,95 @@ export default function Home() {
   )}
 </div>
         </div>
+{/* Player + Session Controls */}
+<div className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm space-y-4">
+
+  {/* Player Row */}
+  <div className="flex flex-col sm:flex-row gap-3">
+
+    <select
+      value={t.currentPlayerId ?? ""}
+      onChange={(e) =>
+        t.setCurrentPlayerId(e.target.value || null)
+      }
+      className="rounded-xl border border-zinc-300 px-3 py-2 text-sm bg-white"
+    >
+      <option value="">Select Player</option>
+      {players.map((p) => (
+        <option key={p.id} value={p.id}>
+          {p.name}
+        </option>
+      ))}
+    </select>
+
+    <input
+      id="playerName"
+      placeholder="New player name"
+      className="rounded-xl border border-zinc-300 px-3 py-2 text-sm bg-white"
+    />
+
+    <button
+      onClick={() => {
+        const input = document.getElementById(
+          "playerName"
+        ) as HTMLInputElement;
+
+        const name = input?.value.trim();
+        if (!name) return;
+
+        const existing = getPlayers();
+        const duplicate = existing.find(
+          (p) => p.name.toLowerCase() === name.toLowerCase()
+        );
+
+        if (duplicate) {
+          t.setCurrentPlayerId(duplicate.id);
+          input.value = "";
+          return;
+        }
+
+        const newPlayer = createPlayer(name);
+        existing.push(newPlayer);
+        savePlayers(existing);
+        setPlayers(existing);
+        t.setCurrentPlayerId(newPlayer.id);
+
+        input.value = "";
+      }}
+      className="px-4 py-2 rounded-xl border-2 border-lime-400 text-black text-sm font-medium bg-white hover:bg-lime-50 transition"
+    >
+      Add
+    </button>
+  </div>
+
+  {/* Save Session */}
+  {t.currentPlayerId && (
+    <div className="flex gap-3">
+      <input
+        id="sessionName"
+        placeholder="Session name"
+        className="rounded-xl border border-zinc-300 px-3 py-2 text-sm bg-white"
+      />
+      <button
+        onClick={() => {
+          const input = document.getElementById(
+            "sessionName"
+          ) as HTMLInputElement;
+
+          const name = input?.value.trim();
+          if (!name) return;
+
+          t.saveSessionToPlayer(name);
+          input.value = "";
+        }}
+        className="px-4 py-2 rounded-xl border-2 border-lime-400 text-black text-sm font-medium bg-white hover:bg-lime-50 transition"
+      >
+        Save Session
+      </button>
+    </div>
+  )}
+
+</div>
 
         {/* Strike Zone */}
         <div className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
