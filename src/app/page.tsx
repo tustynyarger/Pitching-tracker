@@ -18,200 +18,142 @@ export default function Home() {
     ...t.plateAppearances.flatMap((pa) => pa.pitches),
     ...t.abPitches,
   ];
-const totalPitches = t.totalPitches;
-const totalPA = t.plateAppearances.length;
 
-const totalStrikes = allPitches.filter(
-  (p) =>
-    p.result === "called_strike" ||
-    p.result === "swinging_strike" ||
-    p.result === "foul" ||
-    p.result === "in_play"
-).length;
-
-const strikePct =
-  totalPitches > 0
-    ? ((totalStrikes / totalPitches) * 100).toFixed(1)
-    : "—";
-
-const firstPitchStrikes = t.plateAppearances.filter((pa) => {
-  const first = pa.pitches[0];
-  if (!first) return false;
+  const totalPitches = t.totalPitches;
+  const totalPA = t.plateAppearances.length;
 
   return (
-    first.result === "called_strike" ||
-    first.result === "swinging_strike" ||
-    first.result === "foul" ||
-    first.result === "in_play"
-  );
-}).length;
+    <main className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors">
 
-const firstPitchStrikePct =
-  totalPA > 0
-    ? ((firstPitchStrikes / totalPA) * 100).toFixed(1)
-    : "—";
-
-const pitchesPerPA =
-  totalPA > 0
-    ? (totalPitches / totalPA).toFixed(2)
-    : "—";
-
-const kPct =
-  totalPA > 0
-    ? ((t.strikeouts / totalPA) * 100).toFixed(1)
-    : "—";
-
-const bbPct =
-  totalPA > 0
-    ? ((t.walks / totalPA) * 100).toFixed(1)
-    : "—";
-
-const hitPct =
-  totalPA > 0
-    ? ((t.hits / totalPA) * 100).toFixed(1)
-    : "—";
-  return (
-    <main className="relative min-h-screen bg-zinc-50">
-
-      {/* Subtle layered background */}
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-white via-zinc-50 to-zinc-100" />
-
-      <div className="max-w-4xl mx-auto px-4 py-10 space-y-8">
+      <div className="max-w-4xl mx-auto px-4 py-10 space-y-10">
 
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-lg font-semibold tracking-tight">
-            Softball Performance Tracker
-          </h1>
+          <h1 className="text-xl font-semibold tracking-tight">
+  <span className="text-lime-500">Softball</span> Performance Tracker
+</h1>
 
           <Link
             href="/sessions"
-            className="text-sm text-zinc-600 hover:text-zinc-900 transition"
-          >
-            Sessions →
+className="px-4 py-2 rounded-xl border-2 border-lime-400 text-black text-sm font-medium bg-white hover:bg-lime-50 transition"    >      Sessions
           </Link>
         </div>
 
-        {/* Player Card */}
-        <section className="glass-card space-y-5">
+        {/* Player + Session Controls */}
+        <section className="space-y-6">
 
-          <div className="flex gap-3 flex-col sm:flex-row">
+  {/* Player Row */}
+<div className="flex flex-col gap-3">
 
-            <select
-              value={t.currentPlayerId ?? ""}
-              onChange={(e) =>
-                t.setCurrentPlayerId(e.target.value || null)
-              }
-              className="input"
-            >
-              <option value="">Select Player</option>
-              {players.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
+  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
 
-            <input
-              id="playerName"
-              placeholder="New player"
-              className="input"
-            />
+    <select
+      value={t.currentPlayerId ?? ""}
+      onChange={(e) =>
+        t.setCurrentPlayerId(e.target.value || null)
+      }
+      className="rounded-xl border border-zinc-300 px-3 py-2 text-sm bg-white"
+    >
+      <option value="">Select Player</option>
+      {players.map((p) => (
+        <option key={p.id} value={p.id}>
+          {p.name}
+        </option>
+      ))}
+    </select>
 
-            <button
-              onClick={() => {
-                const input = document.getElementById(
-                  "playerName"
-                ) as HTMLInputElement;
+  </div>
 
-                const name = input?.value.trim();
-                if (!name) return;
+  <div className="flex gap-3">
+    <input
+      id="playerName"
+      placeholder="New player"
+      className="rounded-xl border border-zinc-300 px-3 py-2 text-sm flex-1"
+    />
 
-                const existing = getPlayers();
-                const duplicate = existing.find(
-                  (p) => p.name.toLowerCase() === name.toLowerCase()
-                );
+    <button
+      onClick={() => {
+        const input = document.getElementById(
+          "playerName"
+        ) as HTMLInputElement;
 
-                if (duplicate) {
-                  t.setCurrentPlayerId(duplicate.id);
-                  input.value = "";
-                  return;
-                }
+        const name = input?.value.trim();
+        if (!name) return;
 
-                const newPlayer = createPlayer(name);
-                existing.push(newPlayer);
-                savePlayers(existing);
-                setPlayers(existing);
-                t.setCurrentPlayerId(newPlayer.id);
+        const existing = getPlayers();
+        const duplicate = existing.find(
+          (p) => p.name.toLowerCase() === name.toLowerCase()
+        );
 
-                input.value = "";
-              }}
-              className="btn-primary"
-            >
-              Add
-            </button>
-          </div>
+        if (duplicate) {
+          t.setCurrentPlayerId(duplicate.id);
+          input.value = "";
+          return;
+        }
 
-          {t.currentPlayerId && (
-            <div className="flex justify-between items-center">
-              <button
-                onClick={() => {
-                  if (!confirm("Delete player?")) return;
-                  const updated = players.filter(
-                    (p) => p.id !== t.currentPlayerId
-                  );
-                  savePlayers(updated);
-                  setPlayers(updated);
-                  t.setCurrentPlayerId(null);
-                }}
-                className="text-xs text-red-500 hover:opacity-70 transition"
-              >
-                Delete Player
-              </button>
+        const newPlayer = createPlayer(name);
+        existing.push(newPlayer);
+        savePlayers(existing);
+        setPlayers(existing);
+        t.setCurrentPlayerId(newPlayer.id);
 
-              <div className="flex gap-3">
-                <input
-                  id="sessionName"
-                  placeholder="Session name"
-                  className="input"
-                />
-                <button
-                  onClick={() => {
-                    const input = document.getElementById(
-                      "sessionName"
-                    ) as HTMLInputElement;
+        input.value = "";
+      }}
+className="px-4 py-2 rounded-xl border-2 border-lime-400 text-black text-sm font-medium bg-white hover:bg-lime-50 transition"    >
+      Add
+    </button>
+  </div>
 
-                    const name = input?.value.trim();
-                    if (!name) return;
+</div>
 
-                    t.saveSessionToPlayer(name);
-                    input.value = "";
-                  }}
-                  className="btn-secondary"
-                >
-                  Save
-                </button>
-              </div>
-            </div>
-          )}
+  {/* Save Session */}
+  {t.currentPlayerId && (
+    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
 
-        </section>
+      <input
+        id="sessionName"
+        placeholder="Session name"
+        className="rounded-xl border border-zinc-300 px-3 py-2 text-sm flex-1"
+      />
 
-        {/* Tracker Card */}
-        <section className="glass-card space-y-6">
+      <button
+        onClick={() => {
+          const input = document.getElementById(
+            "sessionName"
+          ) as HTMLInputElement;
 
-          <div className="text-center text-sm text-zinc-500">
+          const name = input?.value.trim();
+          if (!name) return;
+
+          t.saveSessionToPlayer(name);
+          input.value = "";
+        }}
+className="px-4 py-2 rounded-xl border-2 border-lime-400 text-black text-sm font-medium bg-white hover:bg-lime-50 transition"      >
+        Save Session
+      </button>
+
+     
+    </div>
+  )}
+
+</section>
+
+        {/* Tracker */}
+        <section className="rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-sm space-y-6">
+
+          <div className="text-center text-sm">
             Count:{" "}
-            <span className="font-semibold text-zinc-900">
+            <span className="font-semibold">
               {t.count.balls}–{t.count.strikes}
             </span>
           </div>
 
-          <StrikeZone
-            value={t.pendingLocation}
-            onChange={t.setPendingLocation}
-            pitches={allPitches}
-          />
+         <StrikeZone
+  value={t.pendingLocation}
+  onChange={t.setPendingLocation}
+  pitches={allPitches}
+  plateAppearances={t.plateAppearances}
+/>
 
           <div className="grid grid-cols-2 gap-3">
             <button onClick={() => t.recordPitch("ball")} className="btn">
@@ -231,65 +173,42 @@ const hitPct =
             </button>
           </div>
 
-          {t.pendingInPlay && (
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={() => t.resolveInPlay("HIT")}
-                className="btn-success"
-              >
-                Hit
-              </button>
-              <button
-                onClick={() => t.resolveInPlay("OUT")}
-                className="btn-dark"
-              >
-                Out
-              </button>
-            </div>
-          )}
+         {t.pendingInPlay && (
+  <div className="flex justify-center gap-4">
+    <button
+      onClick={() => t.resolveInPlay("HIT")}
+      className="px-4 py-2 rounded-xl border-2 border-lime-400 text-black text-sm font-medium bg-white hover:bg-lime-50 transition"
+    >
+      Hit
+    </button>
+    <button
+      onClick={() => t.resolveInPlay("OUT")}
+      className="px-4 py-2 rounded-xl border-2 border-zinc-400 text-black text-sm font-medium bg-white hover:bg-zinc-50 transition"
+    >
+      Out
+    </button>
+  </div>
+)}
 
-          <div className="flex justify-center gap-4 pt-4">
-            <button onClick={t.undoLastPitch} className="btn-secondary">
-              Undo
-            </button>
-            <button onClick={t.clearSession} className="btn-danger">
-              Clear
-            </button>
+        </section>
+        {/* Metrics */}
+        <section className="rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-sm space-y-6">
+
+          <div className="grid grid-cols-2 gap-6 text-center text-sm">
+
+            <Metric label="Total Pitches" value={t.totalPitches} />
+            <Metric label="Plate Appearances" value={t.plateAppearances.length} />
+            <Metric label="Hits" value={t.hits} />
+            <Metric label="Strikeouts" value={t.strikeouts} />
+            <Metric label="Walks" value={t.walks} />
+
           </div>
 
         </section>
-
-       {/* Metrics */}
-<section className="glass-card space-y-6">
-
-  <div className="grid grid-cols-2 gap-6 text-center text-sm">
-
-    <Metric label="Total Pitches" value={totalPitches} />
-    <Metric label="Plate Appearances" value={totalPA} />
-    <Metric label="Hits" value={t.hits} />
-    <Metric label="Strikeouts" value={t.strikeouts} />
-    <Metric label="Walks" value={t.walks} />
-
-  </div>
-
-  <div className="grid grid-cols-2 gap-6 text-center text-sm">
-
-    <Metric label="Strike %" value={strikePct + "%"} />
-    <Metric label="1st Pitch Strike %" value={firstPitchStrikePct + "%"} />
-    <Metric label="Pitches / PA" value={pitchesPerPA} />
-    <Metric label="K %" value={kPct + "%"} />
-    <Metric label="BB %" value={bbPct + "%"} />
-    <Metric label="Hit %" value={hitPct + "%"} />
-
-  </div>
-
-</section>
-
       </div>
     </main>
   );
 }
-
 function Metric({
   label,
   value,
@@ -298,9 +217,13 @@ function Metric({
   value: number | string;
 }) {
   return (
-    <div className="rounded-2xl bg-white/60 backdrop-blur-xl border border-zinc-200 p-5 shadow-sm">
-      <div className="text-xs text-zinc-500">{label}</div>
-      <div className="text-xl font-semibold mt-2">{value}</div>
+    <div className="rounded-2xl bg-zinc-100 dark:bg-zinc-800 p-5">
+      <div className="text-xs text-zinc-500 dark:text-zinc-400">
+        {label}
+      </div>
+      <div className="text-xl font-semibold mt-2">
+        {value}
+      </div>
     </div>
   );
 }

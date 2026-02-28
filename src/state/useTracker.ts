@@ -44,6 +44,7 @@ export function useTracker() {
       { id: makeId(), pitches: pitchesToFinalize, endType },
     ]);
 
+    // reset AB
     setAbPitches([]);
     setPendingLocation(null);
   }
@@ -59,7 +60,7 @@ export function useTracker() {
       swing,
       contact,
       location: pendingLocation,
-      pitchNumberInAB: abPitches.length + 1,
+      pitchNumberInAB: abPitches.length + 1, // now safe, controlled source
     };
 
     const nextPitches = [...abPitches, nextPitch];
@@ -96,19 +97,28 @@ export function useTracker() {
     finalizePA(pendingInPlay, "IN_PLAY");
     setPendingInPlay(null);
   }
-function clearSession() {
-  setAbPitches([]);
-  setPlateAppearances([]);
-  setWalks(0);
-  setStrikeouts(0);
-  setHits(0);
-  setPendingLocation(null);
-  setPendingInPlay(null);
-}
+
+  function clearSession() {
+    setAbPitches([]);
+    setPlateAppearances([]);
+    setWalks(0);
+    setStrikeouts(0);
+    setHits(0);
+    setPendingLocation(null);
+    setPendingInPlay(null);
+  }
 
   function undoLastPitch() {
     if (abPitches.length > 0) {
-      setAbPitches((prev) => prev.slice(0, -1));
+      const updated = abPitches.slice(0, -1);
+
+      // re-number safely
+      const renumbered = updated.map((p, i) => ({
+        ...p,
+        pitchNumberInAB: i + 1,
+      }));
+
+      setAbPitches(renumbered);
       return;
     }
 
@@ -116,7 +126,14 @@ function clearSession() {
       const last = plateAppearances[plateAppearances.length - 1];
 
       setPlateAppearances((prev) => prev.slice(0, -1));
-      setAbPitches(last.pitches);
+
+      // restore AB and re-number cleanly
+      const restored = last.pitches.map((p, i) => ({
+        ...p,
+        pitchNumberInAB: i + 1,
+      }));
+
+      setAbPitches(restored);
 
       if (last.endType === "WALK") setWalks((w) => Math.max(0, w - 1));
       if (last.endType === "K") setStrikeouts((k) => Math.max(0, k - 1));
@@ -125,25 +142,25 @@ function clearSession() {
   }
 
   function saveSessionToPlayer(sessionName: string) {
-  if (!currentPlayerId || !sessionName) return;
+    if (!currentPlayerId || !sessionName) return;
 
-  const players = getPlayers();
-  const index = players.findIndex((p) => p.id === currentPlayerId);
-  if (index === -1) return;
+    const players = getPlayers();
+    const index = players.findIndex((p) => p.id === currentPlayerId);
+    if (index === -1) return;
 
-  players[index].sessions.push({
-    id: makeId(),
-    name: sessionName,
-    date: new Date().toISOString(),
-    plateAppearances,
-    walks,
-    strikeouts,
-    hits,
-    totalPitches,
-  });
+    players[index].sessions.push({
+      id: makeId(),
+      name: sessionName,
+      date: new Date().toISOString(),
+      plateAppearances,
+      walks,
+      strikeouts,
+      hits,
+      totalPitches,
+    });
 
-  savePlayers(players);
-}
+    savePlayers(players);
+  }
 
   const totalPitches = useMemo(() => {
     const completed = plateAppearances.reduce(
