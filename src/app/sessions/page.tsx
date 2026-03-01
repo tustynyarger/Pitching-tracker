@@ -15,7 +15,97 @@ export default function SessionsPage() {
   const selectedPlayer = players.find(
     (p) => p.id === selectedPlayerId
   );
+const playerTotals = selectedPlayer
+  ? selectedPlayer.sessions.reduce(
+      (acc: any, session: any) => {
+        const paCount = session.plateAppearances.length;
 
+        const inPlayCount = session.plateAppearances.filter(
+          (pa: any) => pa.endType === "IN_PLAY"
+        ).length;
+
+        const allPitches = session.plateAppearances.flatMap(
+          (pa: any) => pa.pitches
+        );
+
+        const swingCount = allPitches.filter(
+          (p: any) => p.swing
+        ).length;
+
+        const contactCount = allPitches.filter(
+          (p: any) => p.contact
+        ).length;
+
+        acc.totalPitches += session.totalPitches;
+        acc.totalPA += paCount;
+        acc.hits += session.hits;
+        acc.strikeouts += session.strikeouts;
+        acc.walks += session.walks;
+        acc.ballsInPlay += inPlayCount;
+        acc.bipOuts += inPlayCount - session.hits;
+        acc.swings += swingCount;
+        acc.contacts += contactCount;
+
+        return acc;
+      },
+      {
+        totalPitches: 0,
+        totalPA: 0,
+        hits: 0,
+        strikeouts: 0,
+        walks: 0,
+        ballsInPlay: 0,
+        bipOuts: 0,
+        swings: 0,
+        contacts: 0,
+      }
+    )
+  : null;
+
+const strikePct =
+  playerTotals && playerTotals.totalPitches > 0
+    ? (
+        ((playerTotals.totalPitches -
+          playerTotals.walks) /
+          playerTotals.totalPitches) *
+        100
+      ).toFixed(1)
+    : "—";
+
+const kPct =
+  playerTotals && playerTotals.totalPA > 0
+    ? (
+        (playerTotals.strikeouts /
+          playerTotals.totalPA) *
+        100
+      ).toFixed(1)
+    : "—";
+
+const bbPct =
+  playerTotals && playerTotals.totalPA > 0
+    ? (
+        (playerTotals.walks /
+          playerTotals.totalPA) *
+        100
+      ).toFixed(1)
+    : "—";
+const swingPct =
+  playerTotals && playerTotals.totalPitches > 0
+    ? (
+        (playerTotals.swings /
+          playerTotals.totalPitches) *
+        100
+      ).toFixed(1)
+    : "—";
+
+const contactPct =
+  playerTotals && playerTotals.swings > 0
+    ? (
+        (playerTotals.contacts /
+          playerTotals.swings) *
+        100
+      ).toFixed(1)
+    : "—";
   return (
     <main className="min-h-screen bg-zinc-50 p-8">
       <div className="max-w-4xl mx-auto space-y-8">
@@ -69,6 +159,25 @@ export default function SessionsPage() {
         </div>
 
         {/* Sessions List */}
+{selectedPlayer && playerTotals && (
+  <div className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm space-y-4">
+    <div className="text-sm font-semibold text-zinc-700">
+      Player Summary
+    </div>
+
+    <div className="grid grid-cols-2 gap-6 text-center text-sm">
+  <Metric label="Total Pitches" value={playerTotals.totalPitches} />
+  <Metric label="Total PA" value={playerTotals.totalPA} />
+  <Metric label="Hits" value={playerTotals.hits} />
+  <Metric label="Strikeouts" value={playerTotals.strikeouts} />
+  <Metric label="Walks" value={playerTotals.walks} />
+  <Metric label="Balls In Play" value={playerTotals.ballsInPlay} />
+  <Metric label="BIP Outs" value={playerTotals.bipOuts} />
+  <Metric label="Swing %" value={swingPct + "%"} />
+  <Metric label="Contact %" value={contactPct + "%"} />
+</div>
+  </div>
+)}
         {selectedPlayer &&
           selectedPlayer.sessions.map((s: any) => (
             <Link
@@ -85,5 +194,19 @@ export default function SessionsPage() {
 
       </div>
     </main>
+  );
+}
+function Metric({
+  label,
+  value,
+}: {
+  label: string;
+  value: number | string;
+}) {
+  return (
+    <div className="rounded-2xl bg-white border border-zinc-200 p-4 shadow-sm">
+      <div className="text-xs text-zinc-500">{label}</div>
+      <div className="text-lg font-semibold mt-1">{value}</div>
+    </div>
   );
 }
